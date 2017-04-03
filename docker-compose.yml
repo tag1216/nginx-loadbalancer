@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+
+  web1:
+    build: ./containers/web/
+    environment:
+      - FLASK_APP=app.py
+      - WAIT=0.1
+      - RESPONSE_TEXT=web1
+    volumes:
+      - ./containers/web/:/usr/src/app/:ro
+    command: uwsgi --ini uwsgi.ini --processes 4
+
+  web2:
+    build: ./containers/web/
+    environment:
+      - FLASK_APP=app.py
+      - WAIT=0.2
+      - RESPONSE_TEXT=web2
+    volumes:
+      - ./containers/web/:/usr/src/app/:ro
+    command: uwsgi --ini uwsgi.ini --processes 4
+
+  nginx:
+    image: nginx
+    volumes:
+      - ./containers/nginx/conf.d/:/etc/nginx/conf.d/:ro
+
+  client:
+    image: python:3.6
+    depends_on:
+      - web1
+      - web2
+      - nginx
+    volumes:
+      - ./containers/client/:/usr/src/app/:ro
+    command: python /usr/src/app/client.py
